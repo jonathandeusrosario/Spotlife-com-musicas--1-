@@ -1,0 +1,175 @@
+{% import "player_macros.html" as ui %}
+{% macro playback_meter() -%}
+    <span class="playback-meter" aria-hidden="true"><i></i><i></i><i></i></span>
+{%- endmacro %}
+{% set tracks = [
+    {"id": "waroxe-what-is-love", "title": "What Is Love", "artist": "Waroxe", "art": "orb", "group": "Álbuns"},
+    {"id": "atch-all-the-same", "title": "All The Same", "artist": "Atch", "art": "night", "group": "Álbuns"},
+    {"id": "ryyzn-misfits", "title": "Misfits", "artist": "RYYZN", "art": "voice", "group": "Música"},
+    {"id": "salvatore-ganacci-talk-7-skies-remix", "title": "Talk (7 Skies Remix)", "artist": "Salvatore Ganacci", "art": "red", "group": "Música"},
+    {"id": "dyalla-wonderful", "title": "Wonderful", "artist": "Dyalla", "art": "rhythm", "group": "Playlists"},
+    {"id": "aer0head-haven", "title": "HAVEN", "artist": "AERØHEAD", "art": "sunset", "group": "Playlists"}
+] %}
+{% set featured = tracks[0] %}
+{% set shortcuts = [
+    ("Músicas curtidas", "portrait", "favorites"),
+    (tracks[4].title, "rhythm", tracks[4].id),
+    (tracks[1].title, "night", tracks[1].id),
+    (tracks[5].title, "sunset", tracks[5].id),
+    (tracks[2].title, "voice", tracks[2].id),
+    (tracks[3].title, "band", tracks[3].id)
+] %}
+<!doctype html>
+<html lang="pt-BR">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+    <meta name="theme-color" content="#100d17">
+    <title>Início · Spotlife</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='player.css') }}">
+    <script src="{{ url_for('static', filename='player.js') }}" defer></script>
+</head>
+<body>
+    <div class="music-app">
+        <nav class="rail" aria-label="Navegação principal">
+            <a class="spot-mark" href="{{ url_for('welcome') }}" aria-label="Spotlife">
+                <i></i><i></i><i></i><i></i><i></i>
+            </a>
+            <button type="button" class="nav-button" data-view="Tudo" aria-label="Início" title="Início" aria-pressed="true">{{ ui.icon('home') }}<span>Início</span></button>
+            <button type="button" class="nav-button" id="search-nav" aria-label="Buscar" title="Buscar">{{ ui.icon('search') }}<span>Buscar</span></button>
+            <button type="button" class="nav-button" data-view="Playlists" aria-label="Playlists" title="Playlists" aria-pressed="false">{{ ui.icon('library') }}<span>Playlists</span></button>
+            <button type="button" class="nav-button" data-view="favorites" aria-label="Curtidas" title="Curtidas" aria-pressed="false">{{ ui.icon('heart') }}<span>Curtidas</span></button>
+            <div class="rail-covers">
+                {% for track in tracks[:6] %}
+                    <button type="button" class="rail-cover" data-play="{{ track.id }}" aria-label="Tocar {{ track.title }}" title="{{ track.title }}">{{ ui.cover(track.art) }}</button>
+                {% endfor %}
+            </div>
+        </nav>
+
+        <main class="main-panel" id="music-main">
+            <header class="player-header">
+                <a class="mobile-brand" href="{{ url_for('welcome') }}"><span class="spot-mark" aria-hidden="true"><i></i><i></i><i></i><i></i><i></i></span>Spotlife</a>
+                <label class="search-box">
+                    {{ ui.icon('search') }}
+                    <input id="track-search" type="search" placeholder="O que você quer ouvir?" aria-label="Buscar no catálogo">
+                </label>
+                <button type="button" class="icon-button queue-open" aria-label="Abrir fila" aria-controls="now-panel" aria-expanded="false">{{ ui.icon('queue') }}</button>
+                <details class="profile">
+                    <summary aria-label="Menu da conta de {{ name }}" title="{{ name }}">{{ name[0]|upper }}</summary>
+                    <div class="profile-menu">
+                        <strong>{{ name }}</strong>
+                        <form action="{{ url_for('logout') }}" method="post">
+                            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                            <button type="submit">Sair</button>
+                        </form>
+                    </div>
+                </details>
+            </header>
+
+            <div class="music-content">
+                <nav class="filters" aria-label="Filtrar catálogo">
+                    {% for group in ("Tudo", "Música", "Playlists", "Álbuns") %}
+                        <button type="button" data-view="{{ group }}" aria-pressed="{{ 'true' if loop.first else 'false' }}">{{ group }}</button>
+                    {% endfor %}
+                </nav>
+
+                <div id="home-content">
+                    <section class="shortcuts" aria-label="Atalhos">
+                        {% for title, art, key in shortcuts %}
+                            <button type="button" class="shortcut" {% if key == "favorites" %}data-open-favorites{% else %}data-play="{{ key }}"{% endif %}>
+                                {{ ui.cover(art) }}<strong>{{ title }}</strong>
+                                <span class="shortcut-play">{{ ui.icon('heart' if key == 'favorites' else 'play') }}</span>
+                            </button>
+                        {% endfor %}
+                    </section>
+
+                    <section class="feature" aria-labelledby="feature-title">
+                        <div class="section-title">
+                            <div><p>Seu espaço, seu som</p><h1 id="feature-title">Boa música começa aqui.</h1></div>
+                        </div>
+                        <div class="feature-body">
+                            {{ ui.cover(featured.art) }}
+                            <div>
+                                <p class="eyeline">Em destaque · {{ featured.artist }}</p>
+                                <h2>{{ featured.title }}</h2>
+                                <div class="feature-actions">
+                                    <button type="button" class="play-button" aria-label="Tocar {{ featured.title }}" data-play="{{ featured.id }}">{{ ui.icon('play') }}</button>
+                                </div>
+                                <p class="feature-description">Dê o play e encontre a trilha para este momento.</p>
+                            </div>
+                        </div>
+                    </section>
+                </div>
+
+                <section aria-labelledby="catalog-heading" id="catalog">
+                    <div class="section-title catalog-title"><h2 id="catalog-heading">Feito para o seu momento</h2></div>
+                    <p id="catalog-empty" class="catalog-empty" role="status" hidden></p>
+                    <div class="album-grid">
+                        {% for track in tracks %}
+                            <article class="album-card" data-track-card="{{ track.id }}">
+                                <button type="button" class="album-play" data-play="{{ track.id }}" aria-label="Tocar {{ track.title }}">
+                                    {{ ui.cover(track.art) }}
+                                    <span class="album-icon">{{ ui.icon('play') }}</span>
+                                    <strong>{{ track.title }}</strong>
+                                </button>
+                                <p>{{ track.artist }}</p>
+                            </article>
+                        {% endfor %}
+                    </div>
+                </section>
+            </div>
+        </main>
+
+        <aside class="now-panel" id="now-panel" aria-labelledby="now-heading" tabindex="-1" data-cover-theme="{{ featured.art }}">
+            <div class="now-heading"><h2 id="now-heading">Tocando agora</h2><button type="button" class="icon-button queue-close" aria-label="Fechar fila">{{ ui.icon('close') }}</button></div>
+            <div data-current-cover>{{ ui.cover(featured.art) }}</div>
+            <div class="now-track">
+                <div>
+                    <div class="playback-title"><h3 data-current-title>{{ featured.title }}</h3>{{ playback_meter() }}</div>
+                    <p data-current-artist>{{ featured.artist }}</p>
+                </div>
+                <button type="button" class="icon-button favorite" data-favorite aria-pressed="false" aria-label="Curtir faixa">{{ ui.icon('heart') }}</button>
+            </div>
+            <section class="queue" aria-labelledby="queue-heading">
+                <h3 id="queue-heading">Próximas na fila</h3>
+                <div id="queue-tracks">
+                    {% for track in tracks[1:4] %}
+                        <button type="button" class="queue-track" data-play="{{ track.id }}">{{ ui.cover(track.art) }}<span><strong>{{ track.title }}</strong><small>{{ track.artist }}</small></span></button>
+                    {% endfor %}
+                </div>
+            </section>
+        </aside>
+
+        <section class="bottom-player" aria-label="Controles de reprodução">
+            <div class="player-track">
+                <div data-current-cover>{{ ui.cover(featured.art) }}</div>
+                <div class="player-track-text">
+                    <div class="playback-title"><strong data-current-title>{{ featured.title }}</strong>{{ playback_meter() }}</div>
+                    <span data-current-artist>{{ featured.artist }}</span>
+                </div>
+                <button type="button" class="icon-button favorite" data-favorite aria-pressed="false" aria-label="Curtir faixa">{{ ui.icon('heart') }}</button>
+            </div>
+            <div class="player-center">
+                <div class="transport">
+                    <button type="button" class="icon-button transport-extra" id="shuffle" aria-label="Embaralhar" aria-pressed="false">{{ ui.icon('shuffle') }}</button>
+                    <button type="button" class="icon-button" id="previous" aria-label="Faixa anterior">{{ ui.icon('previous') }}</button>
+                    <button type="button" class="play-button" id="toggle-play" aria-label="Reproduzir"><span data-icon-play>{{ ui.icon('play') }}</span><span data-icon-pause hidden>{{ ui.icon('pause') }}</span></button>
+                    <button type="button" class="icon-button" id="next" aria-label="Próxima faixa">{{ ui.icon('next') }}</button>
+                    <button type="button" class="icon-button transport-extra" id="repeat" aria-label="Repetir a faixa" aria-pressed="false">{{ ui.icon('repeat') }}</button>
+                </div>
+                <div class="timeline">
+                    <time id="elapsed">0:00</time><input id="progress" type="range" min="0" max="1" value="0" step="0.1" aria-label="Posição da faixa" disabled><time id="duration">0:00</time>
+                </div>
+            </div>
+            <div class="player-volume">
+                <button type="button" class="icon-button" id="mute" aria-label="Silenciar" aria-pressed="false">{{ ui.icon('volume') }}</button>
+                <input id="volume" type="range" min="0" max="1" value="0.65" step="0.01" aria-label="Volume">
+            </div>
+        </section>
+        <audio id="music-audio" preload="metadata" src="{{ url_for('static', filename='tracks/' ~ featured.id ~ '.wav') }}"></audio>
+        <p id="player-status" class="player-status" role="status" hidden></p>
+    </div>
+    <script type="application/json" id="track-data">{{ tracks|tojson }}</script>
+    <template id="queue-item"><button type="button" class="queue-track"><span class="cover" aria-hidden="true"></span><span><strong></strong><small></small></span></button></template>
+</body>
+</html>

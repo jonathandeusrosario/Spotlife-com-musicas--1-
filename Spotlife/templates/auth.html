@@ -1,0 +1,63 @@
+{% extends "base.html" %}
+{% set registering = mode == "register" %}
+{% set errors = errors|default({}) %}
+{% block title %}{{ 'Crie sua conta' if registering else 'Entrar' }}{% endblock %}
+{% block actions %}
+    <div class="header-action">
+        <span>{{ 'Já tem uma conta?' if registering else 'Ainda não tem conta?' }}</span>
+        <a class="outline-button" href="{{ url_for('login' if registering else 'register') }}">{{ 'Entrar' if registering else 'Criar conta' }}</a>
+    </div>
+{% endblock %}
+{% block content %}
+    <main class="layout">
+        <section class="art" aria-label="Spotlife">
+            <div class="art-copy">
+                <p>O seu mundo em música</p>
+                <span>Um lugar para o som que faz parte da sua vida.</span>
+            </div>
+            <div class="vinyl" aria-hidden="true"><div class="record-label"><i></i></div></div>
+        </section>
+        <section class="account" aria-labelledby="auth-title">
+            <div class="form-wrap">
+                <h1 id="auth-title">{{ 'Crie sua conta' if registering else 'Entre no Spotlife' }}</h1>
+                <p class="intro">{{ 'Comece com seu nome e e-mail.' if registering else 'Use seu e-mail e sua senha para continuar.' }}</p>
+                {% if message %}<p class="error-banner" role="alert">{{ message }}</p>{% endif %}
+                <form method="post" id="auth-form">
+                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                    {% if registering %}
+                        <div class="field">
+                            <label for="name">Nome</label>
+                            <input id="name" name="name" value="{{ name|default('') }}" placeholder="Como podemos te chamar?" autocomplete="name" minlength="2" maxlength="60" required{% if errors.name %} aria-invalid="true" aria-describedby="name-error"{% endif %}>
+                            {% if errors.name %}<p class="field-error" id="name-error">{{ errors.name }}</p>{% endif %}
+                        </div>
+                    {% endif %}
+                    <div class="field">
+                        <label for="email">E-mail</label>
+                        <input id="email" name="email" type="email" value="{{ email|default('') }}" placeholder="voce@exemplo.com" autocomplete="{{ 'email' if registering else 'username' }}" maxlength="254" required{% if errors.email %} aria-invalid="true" aria-describedby="email-error"{% endif %}>
+                        {% if errors.email %}<p class="field-error" id="email-error">{{ errors.email }}</p>{% endif %}
+                    </div>
+                    <div class="field">
+                        <label for="password">Senha</label>
+                        <div class="password-wrap">
+                            <input id="password" name="password" type="password" placeholder="{{ 'Crie uma senha' if registering else 'Digite sua senha' }}" autocomplete="{{ 'new-password' if registering else 'current-password' }}" maxlength="128" required{% if registering %} minlength="8" aria-describedby="password-hint{% if errors.password %} password-error{% endif %}"{% endif %}{% if errors.password %} aria-invalid="true"{% endif %}>
+                            <button class="toggle-password" type="button" aria-controls="password" hidden>Mostrar</button>
+                        </div>
+                        {% if registering %}<p class="hint" id="password-hint">Use pelo menos 8 caracteres.</p>{% endif %}
+                        {% if errors.password %}<p class="field-error" id="password-error">{{ errors.password }}</p>{% endif %}
+                    </div>
+                    {% if registering %}
+                        <div class="field">
+                            <label for="confirmation">Confirme a senha</label>
+                            <div class="password-wrap">
+                                <input id="confirmation" name="confirmation" type="password" placeholder="Digite a senha novamente" autocomplete="new-password" maxlength="128" required{% if errors.confirmation %} aria-invalid="true" aria-describedby="confirmation-error"{% endif %}>
+                                <button class="toggle-password" type="button" aria-controls="confirmation" hidden>Mostrar</button>
+                            </div>
+                            {% if errors.confirmation %}<p class="field-error" id="confirmation-error">{{ errors.confirmation }}</p>{% endif %}
+                        </div>
+                    {% endif %}
+                    <button class="primary-button" type="submit">{{ 'Criar minha conta' if registering else 'Entrar' }}</button>
+                </form>
+            </div>
+        </section>
+    </main>
+{% endblock %}
